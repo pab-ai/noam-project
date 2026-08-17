@@ -1,0 +1,5 @@
+export type RoutineId = "breakfast" | "lunch" | "dinner";
+export type Outcome = "happy" | "neutral" | "not-yet";
+export type Size = "little" | "medium" | "big";
+export type CheckIn = { id:string; date:string; routine:RoutineId; outcome?:Outcome; size?:Size; createdAt:string; updatedAt:string; synced?:boolean };
+export type Settings = { pinHash?:string; parentEmail?:string };
