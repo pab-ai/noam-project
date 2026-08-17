@@ -1,6 +1,9 @@
 import { createClient } from "@supabase/supabase-js";
-import type { CheckIn } from "./types";
+import type { CheckIn, DayNote } from "./types";
 const url=import.meta.env.VITE_SUPABASE_URL,key=import.meta.env.VITE_SUPABASE_ANON_KEY;
 export const syncConfigured=Boolean(url&&key);
 export const supabase=syncConfigured?createClient(url,key,{auth:{persistSession:true,autoRefreshToken:true}}):null;
 export async function syncCheckIns(items:CheckIn[]){if(!supabase)return{mode:"local" as const};const{data:{user}}=await supabase.auth.getUser();if(!user)return{mode:"signed-out" as const};const rows=items.map(i=>({id:i.id,user_id:user.id,check_in_date:i.date,routine:i.routine,outcome:i.outcome??null,size:i.size??null,created_at:i.createdAt,updated_at:i.updatedAt}));const{error}=await supabase.from("check_ins").upsert(rows,{onConflict:"id"});if(error)throw error;return{mode:"synced" as const}}
+export async function deleteCheckIn(id:string){if(!supabase)return;const{error}=await supabase.from("check_ins").delete().eq("id",id);if(error)throw error}
+export async function syncDayNote(note:DayNote){if(!supabase)return;const{data:{user}}=await supabase.auth.getUser();if(!user)return;const{error}=await supabase.from("day_notes").upsert({user_id:user.id,note_date:note.date,note:note.text,updated_at:note.updatedAt},{onConflict:"user_id,note_date"});if(error)throw error}
+export async function loadFamilyData(){if(!supabase)return{checkIns:[] as CheckIn[],notes:[] as DayNote[]};const[{data:rows,error:checkError},{data:noteRows,error:noteError}]=await Promise.all([supabase.from("check_ins").select("id,check_in_date,routine,outcome,size,created_at,updated_at"),supabase.from("day_notes").select("note_date,note,updated_at")]);if(checkError)throw checkError;const checkIns=(rows||[]).map(r=>({id:r.id,date:r.check_in_date,routine:r.routine,outcome:r.outcome||undefined,size:r.size||undefined,createdAt:r.created_at,updatedAt:r.updated_at,synced:true})) as CheckIn[];const notes=noteError?[]:(noteRows||[]).map(r=>({date:r.note_date,text:r.note,updatedAt:r.updated_at})) as DayNote[];return{checkIns,notes}}
