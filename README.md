@@ -8,6 +8,7 @@ A private, mobile-first toilet-routine tracker for Noam and family. It works as 
 - Optional feeling/outcome and abstract size choices
 - Stars, a growing garden collection, and a gentle October path
 - Monthly check-in calendar
+- Persisted family sign-in before anyone can record a check-in
 - PIN-gated family summary and detailed history
 - Downloadable JSON family backup
 - Offline local demo mode
@@ -23,7 +24,7 @@ cp .env.example .env.local
 npm run dev
 ```
 
-The Supabase variables are optional. Without them, the app runs fully in local demo mode and stores data only in the browser on that device.
+The Supabase variables are optional during local development. Without them, the local app runs in demo mode. A production build without them shows a locked setup screen and cannot record check-ins.
 
 ## Connect Supabase securely
 
@@ -32,7 +33,7 @@ The Supabase variables are optional. Without them, the app runs fully in local d
 3. Copy `.env.example` to `.env.local` and enter the project URL and **anon/public** key. Never use the service-role key in this app.
 4. Restart the local app. In **Grown-ups**, make a PIN, then sign in with the parent account to sync.
 
-The Supabase client persists the parent session on the family phone. Noam’s daily check-in screen needs no sign-in. The local PIN gates detailed history; Supabase authentication and row-level security protect cloud data. The PIN is hashed before being stored locally. The code keeps the PIN gate separate so device biometrics can replace or complement it later.
+The Supabase client persists the parent session on the family phone. After a grown-up signs in once, Noam’s daily check-in screen needs no repeated sign-in. Unknown visitors cannot reach the check-in controls. The local PIN separately gates detailed history; Supabase authentication and row-level security protect cloud data. The PIN is hashed before being stored locally. The code keeps the PIN gate separate so device biometrics can replace or complement it later.
 
 ## GitHub Pages setup
 

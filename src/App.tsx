@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import type { User } from "@supabase/supabase-js";
 import type { CheckIn, Outcome, RoutineId, Settings, Size } from "./types";
 import { dateKey, exportData, hashPin, loadCheckIns, loadSettings, saveCheckIns, saveSettings } from "./storage";
 import { supabase, syncCheckIns, syncConfigured } from "./supabase";
@@ -10,6 +11,19 @@ const sizes:{id:Size;label:string;dots:number}[]=[{id:"little",label:"Little",do
 type Tab="today"|"calendar"|"grownups";
 
 export default function App(){
+ const[user,setUser]=useState<User|null>(null),[authReady,setAuthReady]=useState(!syncConfigured);
+ useEffect(()=>{if(!supabase)return;supabase.auth.getUser().then(({data})=>{setUser(data.user);setAuthReady(true)});const{data}=supabase.auth.onAuthStateChange((_event,session)=>{setUser(session?.user??null);setAuthReady(true)});return()=>data.subscription.unsubscribe()},[]);
+ if(!authReady)return <main className="app-shell"><section className="page pin-page"><div className="lock-art">🌱</div><p className="eyebrow">NOAM’S LITTLE WINS</p><h2>Opening your garden…</h2></section></main>;
+ if(syncConfigured&&!user)return <FamilyGate onOpen={setUser}/>;
+ if(!syncConfigured&&!import.meta.env.DEV)return <SetupGate/>;
+ return <FamilyApp/>;
+}
+
+function FamilyGate({onOpen}:{onOpen:(user:User)=>void}){const[email,setEmail]=useState(""),[password,setPassword]=useState(""),[message,setMessage]=useState("");const signIn=async()=>{if(!supabase)return;setMessage("Opening…");const{data,error}=await supabase.auth.signInWithPassword({email,password});if(error)return setMessage("That sign-in didn’t match. Please try again.");if(data.user)onOpen(data.user)};return <main className="app-shell"><section className="page family-gate"><div className="gate-art">🌻</div><p className="eyebrow">A PRIVATE FAMILY GARDEN</p><h1>Welcome, family</h1><p>Ask a grown-up to open Noam’s little wins on this phone.</p><label>Parent email<input type="email" autoComplete="email" value={email} onChange={e=>setEmail(e.target.value)}/></label><label>Password<input type="password" autoComplete="current-password" value={password} onChange={e=>setPassword(e.target.value)}/></label><button className="primary wide" onClick={signIn}>Open our garden</button>{message&&<p className="gate-message" role="status">{message}</p>}<small>Once opened, this family phone stays ready for Noam.</small></section></main>}
+
+function SetupGate(){return <main className="app-shell"><section className="page family-gate"><div className="gate-art">🔐</div><p className="eyebrow">FAMILY SETUP NEEDED</p><h1>This garden is locked</h1><p>The family connection has not been added yet. A grown-up can finish the private setup from the project instructions.</p><small>No toilet-time information can be recorded on this screen.</small></section></main>}
+
+function FamilyApp(){
  const[tab,setTab]=useState<Tab>("today"),[checkIns,setCheckIns]=useState<CheckIn[]>(loadCheckIns),[settings,setSettings]=useState<Settings>(loadSettings),[editing,setEditing]=useState<RoutineId|null>(null),[celebrate,setCelebrate]=useState(false),[parentOpen,setParentOpen]=useState(false),[notice,setNotice]=useState("");
  const today=dateKey(),todays=checkIns.filter(c=>c.date===today),stars=checkIns.length,poos=checkIns.filter(c=>c.outcome==="happy"||c.outcome==="neutral").length;
  const streak=useMemo(()=>{const days=new Set(checkIns.map(c=>c.date));let count=0,d=new Date();while(days.has(dateKey(d))){count++;d.setDate(d.getDate()-1)}return count},[checkIns]);
