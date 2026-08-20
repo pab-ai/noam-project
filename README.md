@@ -5,6 +5,8 @@ A private, mobile-first toilet-routine tracker for Noam and family. It works as 
 ## What is included
 
 - Three large daily toilet-time cards
+- Two meal-linked medicine routine check-ins for “2 Macrogol packets with water.”
+- A visual 350 mL bottle counter with a parent-configurable display target
 - Optional feeling/outcome and abstract size choices
 - Stars, a growing garden collection, and a gentle October path
 - Monthly check-in calendar
@@ -29,6 +31,7 @@ The Supabase variables are optional during local development. Without them, the 
 ## Connect Supabase securely
 
 1. Open the Supabase SQL Editor and run [`supabase/schema.sql`](supabase/schema.sql). This creates only the check-in table and family-only row-level access policies.
+   For an existing installation, also run [`supabase/migration-medicine-water.sql`](supabase/migration-medicine-water.sql) to add family-only medicine and water tracking.
 2. In Supabase Authentication, create or invite the parent user. Do not create an account on the child’s behalf.
 3. Copy `.env.example` to `.env.local` and enter the project URL and **anon/public** key. Never use the service-role key in this app.
 4. Restart the local app. In **Grown-ups**, make a PIN, then sign in with the parent account to sync.

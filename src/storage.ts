@@ -1,5 +1,5 @@
-import type { CheckIn, DayNote, Settings } from "./types";
-const CHECKINS="noam-checkins-v1", SETTINGS="noam-settings-v1", NOTES="noam-day-notes-v1";
+import type { CheckIn, DayNote, MedicineCheckIn, Settings, WaterDay } from "./types";
+const CHECKINS="noam-checkins-v1", SETTINGS="noam-settings-v1", NOTES="noam-day-notes-v1", MEDICINE="noam-medicine-v1", WATER="noam-water-v1";
 export const dateKey=(date=new Date())=>new Date(date.getTime()-date.getTimezoneOffset()*60000).toISOString().slice(0,10);
 export const loadCheckIns=():CheckIn[]=>{try{return JSON.parse(localStorage.getItem(CHECKINS)||"[]")}catch{return[]}};
 export const saveCheckIns=(items:CheckIn[])=>localStorage.setItem(CHECKINS,JSON.stringify(items));
@@ -7,5 +7,9 @@ export const loadSettings=():Settings=>{try{return JSON.parse(localStorage.getIt
 export const saveSettings=(s:Settings)=>localStorage.setItem(SETTINGS,JSON.stringify(s));
 export const loadNotes=():DayNote[]=>{try{return JSON.parse(localStorage.getItem(NOTES)||"[]")}catch{return[]}};
 export const saveNotes=(items:DayNote[])=>localStorage.setItem(NOTES,JSON.stringify(items));
+export const loadMedicine=():MedicineCheckIn[]=>{try{return JSON.parse(localStorage.getItem(MEDICINE)||"[]")}catch{return[]}};
+export const saveMedicine=(items:MedicineCheckIn[])=>localStorage.setItem(MEDICINE,JSON.stringify(items));
+export const loadWater=():WaterDay[]=>{try{return JSON.parse(localStorage.getItem(WATER)||"[]")}catch{return[]}};
+export const saveWater=(items:WaterDay[])=>localStorage.setItem(WATER,JSON.stringify(items));
 export async function hashPin(pin:string){const digest=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(pin));return[...new Uint8Array(digest)].map(b=>b.toString(16).padStart(2,"0")).join("")}
-export function exportData(checkIns:CheckIn[],notes:DayNote[]=[]){const blob=new Blob([JSON.stringify({exportedAt:new Date().toISOString(),version:2,checkIns,dayNotes:notes},null,2)],{type:"application/json"});const url=URL.createObjectURL(blob),link=document.createElement("a");link.href=url;link.download=`noam-little-wins-${dateKey()}.json`;link.click();URL.revokeObjectURL(url)}
+export function exportData(checkIns:CheckIn[],notes:DayNote[]=[],medicineCheckIns:MedicineCheckIn[]=[],waterDays:WaterDay[]=[]){const blob=new Blob([JSON.stringify({exportedAt:new Date().toISOString(),version:4,checkIns,dayNotes:notes,medicineCheckIns,waterDays},null,2)],{type:"application/json"});const url=URL.createObjectURL(blob),link=document.createElement("a");link.href=url;link.download=`noam-little-wins-${dateKey()}.json`;link.click();URL.revokeObjectURL(url)}
